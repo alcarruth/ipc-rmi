@@ -1,0 +1,69 @@
+
+
+IPC Stores and Default Variables
+---------------------------------
+
+  - ipc.of
+  
+    This is where socket connection refrences will be stored when
+    connecting to them as a client via the ipc.connectTo() or
+    ipc.connectToNet(). They will be stored based on the ID used to
+    create them, eg: ipc.of.mySocket.
+
+  - ipc.server
+  
+    This is a refrence to the server created by ipc.serve or
+    ipc.serveNet.
+
+
+IPC Server Methods
+-------------------
+
+  - start
+  
+    Start serving need to call serve or serveNet first to set up the
+    server.
+
+  - stop
+  
+    Close the server and stop serving.
+
+
+IPC Events
+-----------
+
+  - error
+    - err obj
+    - triggered when an error has occured
+
+  - connect
+    - (none)
+    - triggered when socket connected
+
+  - disconnect
+    - (none)
+    - triggered by client when socket has
+      disconnected from server
+
+  - socket.disconnected
+    - socket destroyedSocketID
+    - triggered by server when a client socket has disconnected
+
+  - destroy
+    - (none)
+    - Triggered when socket has been totally destroyed.
+      No further auto retries will happen and
+      all references are gone.
+
+  - data
+    - buffer
+    - triggered when ipc.config.rawBuffer is true and a message is
+      received.
+
+  - [your event type]
+    - [your event data]
+    - triggered when a JSON message is received. The event name will
+      be the type string from your message and the param will be the
+      data object from your message eg : { type:'myEvent',data:{a:1}}
+
+

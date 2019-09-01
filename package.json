@@ -1,0 +1,39 @@
+{
+  "name": "ws-rmi",
+  "version": "0.0.1",
+  "description": "Remote method invocation over websockets.",
+  "main": "index.js",
+  "scripts": {
+    "clean": "./bin/clean.sh",
+    "build": "./bin/build.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:alcarruth/ws-rmi.git"
+  },
+  "keywords": [
+    "npm",
+    "node",
+    "websocket",
+    "remote",
+    "object",
+    "method",
+    "invocation",
+    "javascript",
+    "coffeescript"
+  ],
+  "author": "Al Carruth",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alcarruth/ws-rmi/issues"
+  },
+  "homepage": "https://github.com/alcarruth/ws-rmi#readme",
+  "devDependencies": {},
+  "dependencies": {
+    "coffeescript": "^2.3.2",
+    "http": "0.0.0",
+    "https": "^1.0.0",
+    "node-ipc": "^9.1.1",
+    "ws": "^6.1.3"
+  }
+}
