@@ -3,93 +3,48 @@
 #  faux-ws.coffee
 #
 
-ipc = require('node-ipc')
+{ IPC } = require('node-ipc')
 { EventEmitter } = require('events')
-
-# TODO: Align the type signatures with those in server.coffee and
-# client.coffee in ws-rmi/src: 
-#
-#    class WS_RMI_Server(options, objects)
-#    class WS_RMI_Client(@options, @objects, Connection)
-# 
-
-  # Connnection should be a sub-class of WS_RMI_Connection in order to
-  # create and register desired WS_RMI_Objects at construction.
-  #
-  constructor: 
-
-# 
-class Client
-
-  constructor: (@server_id, @id, config) ->
-    @connection = null
-    @ipc = ipc
-    @ipc.config[k] = v for k,v of config
-    @ipc.config.id = @id
-
-  connect: =>
-    @ipc.connectTo(@server_id, =>
-      socket = @ipc.of[@server_id]
-      @connection = new Faux_WS(socket))
-
-
-class Server
-
-  constructor: (@id, config) ->
-    @config = config || {}
-    @connections = []
-    @ipc = ipc
-    @ipc.config[k] = v for k,v of config
-    @ipc.config.id = @id
-
-  start: =>  
-    @ipc.serve =>
-      @ipc.server.on('connect', @on_Connect)
-    @ipc.server.start()
-
-  on_Connect: (socket) =>
-    connection = new Faux_WS(socket, @ipc.server)
-    @connections.push(connection)
+{ Connection } = require('../../ws-rmi/src')
 
 
 random_id = (name) ->
   "#{name}_#{Math.random().toString()[2..]}"
 
 
-#  Goal: provide api similar to ws (websockets) but over ipc
-#  (e.g. unix sockets)
-#
-#  Start with the basic server example and massage it into
-#  something resembling the ws server.
-#
-#  These are the events that we require for RMI_Connection
-# 
-#    ws.onopen
-#    ws.onmessage
-#    ws.onclose
-#    ws.onerror
-#
-#  From the node-ipc docs these are the node-ipc events
-#
-#   error
-#   connect
-#   disconnect - triggered by client
-#   socket.disconnected - triggered by server
-#   destroy
-#   data
-#   [your event type]- triggered when a JSON message is received
-#
+# Connnection must be a sub-class of RMI_Connection in order to
+# create and register desired RMI_Objects at construction.
 #
 class Faux_WS extends EventEmitter
 
   constructor: (@socket, @server) ->
+    super()
     @id = random_id('faux-ws')
-    @socket.on('connect', @on_Connect)
-    @socket.on('disconnect', @on_Disconnect)
-    @socket.on('app.message', @on_Message)
-    @socket.on('error', @on_Error)
+    if @server
+      @server.on('connect', @on_Connect)
+      @server.on('disconnect', @on_Disconnect)
+      @server.on('app.message', @on_Message)
+      @server.on('error', @on_Error)
+
+      @socket.on('connect', @on_Connect)
+      @socket.on('disconnect', @on_Disconnect)
+      @socket.on('app.message', @on_Message)
+      @socket.on('error', @on_Error)
+    else
+      @socket.on('connect', @on_Connect)
+      @socket.on('disconnect', @on_Disconnect)
+      @socket.on('app.message', @on_Message)
+      @socket.on('error', @on_Error)
     #console.log(socket.destroy))
-      
+
+  # TODO:
+  # 
+  # The websocket api has two events 'connection' and 'open'.  The
+  # node-ipc api has only a 'connect' method.  Ideally I'd like, in
+  # this code, to map the node-ipc events to websocket events so that
+  # faux-ws can serve as a drop-in replacement for ws, without any
+  # tinkering at the higher level.
+  # 
   on_Connect: (args...) =>
     @emit('open', args)
     
@@ -97,6 +52,8 @@ class Faux_WS extends EventEmitter
     @emit('close', args)
 
   on_Message: (data, socket) =>
+    @log("on_Message")
+    @log(socket)
     @emit('message', data)
 
   on_Error: (args...) =>
@@ -132,6 +89,6 @@ class Faux_WS extends EventEmitter
         message: msg)
 
 
+exports.Faux_WS = Faux_WS
 
-exports.Client = Client    
-exports.Server = Server
+

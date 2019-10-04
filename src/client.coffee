@@ -1,19 +1,24 @@
 #!/bin/env/ coffee
 #
-# ws_rmi_client
+# ipc_rmi_client
 #
 
-{ RMI_Connection } = require('./app')
-net = require('net')
+{ IPC } = require('node-ipc')
+RMI_Connection = require('../../ws-rmi/src').Connection
+{ Faux_WS } = require ('./faux-ws')
 
-class RMI_Client
+
+class IPC_RMI_Client
 
   # Connnection must be a sub-class of RMI_Connection in order to
   # create and register desired RMI_Objects at construction.
   #
-  constructor: (@options, @path, @objects, Connection) ->
+  constructor: (Connection, @objects, @options, ipc_config) ->
     @log_level = @options.log_level || 2
     @log = @options.log || console.log
+
+    @ipc = new IPC()
+    @ipc.config[k] = v for k,v of ipc_config
 
     @Connection = Connection || RMI_Connection
     @id = "RMI_Client-#{Math.random().toString()[2..]}"
@@ -23,22 +28,23 @@ class RMI_Client
   # connect() and disconnect() methods
   #
 
-  connect: (path) =>
-    new Promise((resolve, reject) =>
+  connect: =>
+    new Promise (resolve, reject) =>
       try
-        @path = path if path
-        @socket = net.connect(@path)
-        @log("rmi_client: id:", @id)
-        @log("connectiing ...")
-
-        connection = new @Connection(this, @socket, @options)
-        resolve(connection)
+        @ipc.connectTo(@ipc.config.id, =>
+          @socket = @ipc.of[@ipc.config.id]
+          @faux_ws = new Faux_WS(@socket)
+          @connection = new @Connection(this, @faux_ws, @options)
+          resolve(@connection))
 
       catch error
-        @log error
-        msg = "\nRMI_Client: connect failed."
-        msg += " path: #{@path}"
-        throw new Error(msg))
+        msg = "\nIPC_RMI_Client: connect failed."
+        msg += error.toString() + '\n'
+        msg += error.stack.split('\n').filter((x)-> /ipc-rmi/.test(x)).join('\n')
+        @log(msg)
+        @log(error)
+
+
 
   disconnect: =>
     if @log_level > 0
@@ -46,4 +52,4 @@ class RMI_Client
     @socket.close()
 
 
-exports.RMI_Client = RMI_Client
+exports.IPC_RMI_Client = IPC_RMI_Client

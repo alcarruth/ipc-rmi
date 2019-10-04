@@ -1,7 +1,7 @@
 {
-  "name": "ws-rmi",
+  "name": "ipc-rmi",
   "version": "0.0.1",
-  "description": "Remote method invocation over websockets.",
+  "description": "Remote method invocation over unix domain sockets.",
   "main": "index.js",
   "scripts": {
     "clean": "./bin/clean.sh",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:alcarruth/ws-rmi.git"
+    "url": "git@github.com:alcarruth/ipc-rmi.git"
   },
   "keywords": [
     "npm",
@@ -25,15 +25,17 @@
   "author": "Al Carruth",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/alcarruth/ws-rmi/issues"
+    "url": "https://github.com/alcarruth/ipc-rmi/issues"
   },
-  "homepage": "https://github.com/alcarruth/ws-rmi#readme",
+  "homepage": "https://github.com/alcarruth/ipc-rmi#readme",
   "devDependencies": {},
   "dependencies": {
     "coffeescript": "^2.3.2",
     "http": "0.0.0",
     "https": "^1.0.0",
+    "logger": "file:../ws-rmi/node_modules/logger",
     "node-ipc": "^9.1.1",
-    "ws": "^6.1.3"
+    "ws": "^6.1.3",
+    "ws-rmi": "file:../ws-rmi"
   }
 }

@@ -1,38 +1,46 @@
 #!/bin/env/ coffee
 #
-#  ipc_rmi_server
+# ipc_rmi_server
 #
 
-ipc = require('node-ipc')
-{ RMI_Connection } = require('./app')
+{ IPC } = require('node-ipc')
+RMI_Connection = require('../../ws-rmi/src').Connection
+{ Faux_WS } = require ('./faux-ws')
 
-class RMI_Server
 
-  # Connection should extend WS_RMI_Connection in
-  # order to add desired WS_RMI_Objects at construction.
+class IPC_RMI_Server
+
+  # Connection should extend RMI_Connection in
+  # order to add desired RMI_Objects at construction.
   #
-  constructor: (@path, @options) ->
-    @server = net.createServer(null)
+  constructor: (@objects, @options, ipc_config) ->
+    @id = "IPC_RMI_Server-#{Math.random().toString()[2..]}"
     @log_level = @options.log_level || 2
     @log = @options.log || console.log
-    @id = "RMI_Server-#{Math.random().toString()[2..]}"
     @connections = []
 
-    @server.on('connect', (socket) =>
-      try
-        @log("trying new connection: #{socket}")
-        conn = new RMI_Connection(this, socket, @log_level)
-        @connections.push(conn)
-        @log("connection added: #{socket}")
-      catch error
-        msg = "\nRMI_Server_Common: "
-        msg += "\nError in connection event handler"
-        new Error(msg))
+    @ipc = new IPC()
+    @ipc.config[k] = v for k,v of ipc_config
+    @ipc.serve =>
+      @ipc.server.on('connect', (socket) =>
+        try
+          faux_ws = new Faux_WS(socket, @ipc.server)
+          @log("trying new connection: #{faux_ws}")
+          @conn = new RMI_Connection(this, faux_ws, @options)
+          @connections.push(@conn)
+          @log("connection added: #{@conn.id}")
+        catch error
+          msg = "\nIPC_RMI_Server_Common: "
+          msg += "\nError in connection event handler"
+          msg += error.toString() + '\n'
+          msg += error.stack.split('\n').filter((x)-> /ipc-rmi/.test(x)).join('\n')
+          @log(msg))
+
 
   # Start the server.
   start: =>
     try
-      @server.listen(@path)
+      @ipc.server.start()
       @log("server listening at: #{@path}")
 
     catch error
@@ -40,10 +48,9 @@ class RMI_Server
 
   # Stop the server.
   stop: =>
-    @server.close()
+    @ipc.server.stop()
     @log("server stopped.")
 
 
-
-exports.RMI_Server = RMI_Server
+exports.IPC_RMI_Server = IPC_RMI_Server
 
