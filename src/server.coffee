@@ -1,10 +1,10 @@
 #!/bin/env/ coffee
 #
-# ipc_rmi_server
+# ipc/server.coffee
 #
 
 { IPC } = require('node-ipc')
-RMI_Connection = require('../../ws-rmi/src').Connection
+{ RMI_Connection } = require('../rmi')
 { Faux_WS } = require ('./faux-ws')
 
 
@@ -24,7 +24,7 @@ class IPC_RMI_Server
     @ipc.serve =>
       @ipc.server.on('connect', (socket) =>
         try
-          faux_ws = new Faux_WS(socket, @ipc.server)
+          faux_ws = new Faux_WS(socket, @ipc, @options, @ipc.server)
           @log("trying new connection: #{faux_ws}")
           @conn = new RMI_Connection(this, faux_ws, @options)
           @connections.push(@conn)
@@ -53,4 +53,3 @@ class IPC_RMI_Server
 
 
 exports.IPC_RMI_Server = IPC_RMI_Server
-

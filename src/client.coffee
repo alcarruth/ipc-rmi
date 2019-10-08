@@ -1,10 +1,10 @@
 #!/bin/env/ coffee
 #
-# ipc_rmi_client
+# ipc/client.coffee
 #
 
 { IPC } = require('node-ipc')
-RMI_Connection = require('../../ws-rmi/src').Connection
+{ RMI_Connection } = require('../rmi')
 { Faux_WS } = require ('./faux-ws')
 
 
@@ -33,7 +33,7 @@ class IPC_RMI_Client
       try
         @ipc.connectTo(@ipc.config.id, =>
           @socket = @ipc.of[@ipc.config.id]
-          @faux_ws = new Faux_WS(@socket)
+          @faux_ws = new Faux_WS(@socket, @ipc)
           @connection = new @Connection(this, @faux_ws, @options)
           resolve(@connection))
 
